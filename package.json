@@ -1,0 +1,51 @@
+{
+  "name": "music-player",
+  "version": "1.0.0",
+  "description": "本地音乐播放器",
+  "author": "Developer",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder --win",
+    "pack": "electron-builder --win --dir"
+  },
+  "build": {
+    "appId": "com.musicplayer.app",
+    "productName": "SOLO音乐",
+    "directories": {
+      "output": "dist"
+    },
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "SOLO音乐"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "index.html",
+      "renderer.js",
+      "styles.css",
+      "package.json"
+    ]
+  },
+  "dependencies": {
+    "music-metadata": "^7.14.0"
+  },
+  "devDependencies": {
+    "electron": "^22.0.0",
+    "electron-builder": "^23.6.0"
+  }
+}
