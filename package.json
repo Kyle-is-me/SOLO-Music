@@ -12,10 +12,12 @@
   "build": {
     "appId": "com.musicplayer.app",
     "productName": "SOLO音乐",
+    "icon": "src/assets/logo.png",
     "directories": {
       "output": "dist"
     },
     "win": {
+      "icon": "src/assets/logo.png",
       "target": [
         {
           "target": "nsis",

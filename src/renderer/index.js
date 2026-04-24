@@ -27,8 +27,9 @@ const totalTimeEl = document.getElementById('total-time');
 const audio = document.getElementById('audio-player');
 
 function handlePlaySong(index) {
+  setCurrentIndex(index);
   const playlist = getPlaylist();
-  playSong(index, playlist, getCurrentIndex(), {
+  playSong(index, playlist, index, {
     updateSongDisplay,
     renderPlaylist: () => renderPlaylist(handlePlaySong, handleContextMenu)
   });

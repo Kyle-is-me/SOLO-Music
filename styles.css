@@ -120,6 +120,13 @@ body {
   letter-spacing: 0.5px;
 }
 
+#sidebar-logo img {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  object-fit: cover;
+}
+
 #sidebar-nav {
   padding: 0 8px;
   margin-bottom: 8px;
@@ -482,8 +489,8 @@ body {
   display: flex;
   align-items: center;
   gap: 12px;
-  min-width: 200px;
-  max-width: 240px;
+  width: 240px;
+  flex-shrink: 0;
 }
 
 #control-album-art {
