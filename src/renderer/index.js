@@ -1,7 +1,11 @@
-import { addFiles, addFolder, removeSong, clearList, initPlaylist, renderPlaylist, setCallbacks, getPlaylist, getCurrentIndex, setCurrentIndex } from './playlist.js';
+import { addFiles, addFolder, removeSong, clearList, initPlaylist, renderPlaylist, setCallbacks, getPlaylist, getCurrentIndex, setCurrentIndex, addOnlineSongs, addOnlineSong, handlePlayOnlineSongs } from './playlist.js';
 import { playSong, setPlayIcon, togglePlay, playPrev, playNext, toggleMute, togglePlayMode, initAudioEvents } from './player.js';
 import { loadLyricsManual } from './lyrics.js';
-import { updateSongDisplay, showContextMenu, initTheme } from './ui.js';
+import { updateSongDisplay, showContextMenu, initTheme, initAuthModal, initNavigation, switchView, initFavoriteButton, updateFavoriteButton, showAuthModal, showToast } from './ui.js';
+import { initAuth } from './auth.js';
+import { initFavoritesView } from './favorites.js';
+import { initOnlineView } from './online.js';
+import { initSearch } from './search.js';
 
 const electronAPI = window.electronAPI;
 
@@ -30,7 +34,10 @@ function handlePlaySong(index) {
   setCurrentIndex(index);
   const playlist = getPlaylist();
   playSong(index, playlist, index, {
-    updateSongDisplay,
+    updateSongDisplay: (song) => {
+      updateSongDisplay(song);
+      updateFavoriteButton(song);
+    },
     renderPlaylist: () => renderPlaylist(handlePlaySong, handleContextMenu)
   });
 }
@@ -83,4 +90,41 @@ initAudioEvents({
 });
 
 initTheme();
+initAuthModal();
+initNavigation();
+initAuth();
 initPlaylist();
+initOnlineView();
+initSearch();
+initFavoriteButton();
+initFavoritesView();
+
+window.addEventListener('show-login', () => {
+  showAuthModal(false);
+});
+
+window.addEventListener('play-online-songs', (e) => {
+  const songs = e.detail.songs;
+  if (songs && songs.length > 0) {
+    handlePlayOnlineSongs(songs, handlePlaySong);
+  }
+});
+
+audio.addEventListener('error', () => {
+  const playlist = getPlaylist();
+  const currentIndex = getCurrentIndex();
+  if (currentIndex >= 0 && currentIndex < playlist.length) {
+    const song = playlist[currentIndex];
+    if (song.type === 'online') {
+      showToast('在线歌曲播放失败，请检查网络连接', 'error');
+    }
+  }
+});
+
+window.addEventListener('offline', () => {
+  showToast('网络连接已断开', 'error');
+});
+
+window.addEventListener('online', () => {
+  showToast('网络连接已恢复', 'success');
+});

@@ -32,7 +32,11 @@ export async function playSong(index, playlist, currentIndex, callbacks) {
 
   const song = playlist[index];
 
-  audio.src = `local://audio/${encodeURIComponent(song.filePath)}`;
+  if (song.type === 'online') {
+    audio.src = song.audioUrl;
+  } else {
+    audio.src = `local://audio/${encodeURIComponent(song.filePath)}`;
+  }
   audio.load();
 
   callbacks.updateSongDisplay(song);

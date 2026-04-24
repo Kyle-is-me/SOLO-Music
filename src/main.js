@@ -173,3 +173,89 @@ ipcMain.handle('load-playlist', async () => {
     return [];
   }
 });
+
+ipcMain.handle('http-request', async (_event, options) => {
+  const { method = 'GET', url, headers = {}, body } = options;
+  return new Promise((resolve) => {
+    const parsedUrl = new URL(url);
+    const isHttps = parsedUrl.protocol === 'https:';
+    const httpModule = isHttps ? require('https') : require('http');
+
+    let requestBody = body;
+    if (body && typeof body === 'object') {
+      requestBody = JSON.stringify(body);
+      if (!headers['Content-Type'] && !headers['content-type']) {
+        headers['Content-Type'] = 'application/json';
+      }
+    }
+
+    const requestOptions = {
+      method: method.toUpperCase(),
+      hostname: parsedUrl.hostname,
+      port: parsedUrl.port || (isHttps ? 443 : 80),
+      path: parsedUrl.pathname + parsedUrl.search,
+      headers: requestBody ? { ...headers, 'Content-Length': Buffer.byteLength(requestBody) } : headers
+    };
+
+    const req = httpModule.request(requestOptions, (res) => {
+      let data = '';
+      res.on('data', (chunk) => { data += chunk; });
+      res.on('end', () => {
+        let parsedData = data;
+        try {
+          parsedData = JSON.parse(data);
+        } catch {}
+        resolve({ status: res.statusCode, data: parsedData, error: null });
+      });
+    });
+
+    req.on('error', (err) => {
+      resolve({ status: 0, data: null, error: err.message });
+    });
+
+    req.setTimeout(15000, () => {
+      req.destroy();
+      resolve({ status: 0, data: null, error: 'Request timeout after 15s' });
+    });
+
+    if (requestBody) {
+      req.write(requestBody);
+    }
+    req.end();
+  });
+});
+
+const storePath = path.join(app.getPath('userData'), 'app-store.json');
+
+async function readStore() {
+  try {
+    const content = await fs.promises.readFile(storePath, 'utf-8');
+    return JSON.parse(content);
+  } catch {
+    return {};
+  }
+}
+
+async function writeStore(data) {
+  await fs.promises.writeFile(storePath, JSON.stringify(data, null, 2), 'utf-8');
+}
+
+ipcMain.handle('store-get', async (_event, key) => {
+  const store = await readStore();
+  if (key === undefined || key === null) return store;
+  return store[key] !== undefined ? store[key] : null;
+});
+
+ipcMain.handle('store-set', async (_event, key, value) => {
+  const store = await readStore();
+  store[key] = value;
+  await writeStore(store);
+  return true;
+});
+
+ipcMain.handle('store-delete', async (_event, key) => {
+  const store = await readStore();
+  delete store[key];
+  await writeStore(store);
+  return true;
+});

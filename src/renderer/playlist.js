@@ -154,6 +154,47 @@ export async function initPlaylist() {
   }
 }
 
+export function addOnlineSongs(songs) {
+  const startIndex = playlist.length;
+  for (const song of songs) {
+    playlist.push({
+      type: 'online',
+      id: song.id,
+      title: song.title,
+      artist: song.artist,
+      album: song.album || '',
+      duration: song.duration || 0,
+      audioUrl: song.audioUrl,
+      filePath: ''
+    });
+  }
+  renderPlaylist();
+  savePlaylist();
+  return startIndex;
+}
+
+export function addOnlineSong(song) {
+  const index = playlist.length;
+  playlist.push({
+    type: 'online',
+    id: song.id,
+    title: song.title,
+    artist: song.artist,
+    album: song.album || '',
+    duration: song.duration || 0,
+    audioUrl: song.audioUrl,
+    filePath: ''
+  });
+  renderPlaylist();
+  savePlaylist();
+  return index;
+}
+
+export function handlePlayOnlineSongs(songs, playCallback) {
+  const startIndex = addOnlineSongs(songs);
+  playCallback(startIndex);
+}
+
 export function setCallbacks(onPlay, onContextMenu) {
   _onPlay = onPlay;
   _onContextMenu = onContextMenu;
@@ -171,7 +212,16 @@ export function renderPlaylist(onPlay, onContextMenu) {
 
     const titleEl = document.createElement('div');
     titleEl.className = 'playlist-item-title';
-    titleEl.textContent = song.title;
+
+    if (song.type === 'online') {
+      const sourceEl = document.createElement('span');
+      sourceEl.className = 'song-source online-source';
+      sourceEl.textContent = '●';
+      titleEl.appendChild(sourceEl);
+    }
+
+    const titleText = document.createTextNode(song.title);
+    titleEl.appendChild(titleText);
 
     const artistEl = document.createElement('div');
     artistEl.className = 'playlist-item-artist';

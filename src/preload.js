@@ -9,5 +9,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
   scanFolder: (folderPath) => ipcRenderer.invoke('scan-folder', folderPath),
   openLyricDialog: () => ipcRenderer.invoke('open-lyric-dialog'),
   savePlaylist: (data) => ipcRenderer.invoke('save-playlist', data),
-  loadPlaylist: () => ipcRenderer.invoke('load-playlist')
+  loadPlaylist: () => ipcRenderer.invoke('load-playlist'),
+  httpRequest: (options) => ipcRenderer.invoke('http-request', options),
+  storeGet: (key) => ipcRenderer.invoke('store-get', key),
+  storeSet: (key, value) => ipcRenderer.invoke('store-set', key, value),
+  storeDelete: (key) => ipcRenderer.invoke('store-delete', key)
 });
