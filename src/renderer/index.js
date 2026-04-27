@@ -6,6 +6,11 @@ import { initAuth } from './auth.js';
 import { initFavoritesView } from './favorites.js';
 import { initOnlineView } from './online.js';
 import { initSearch } from './search.js';
+import { initAlbumsView, loadAlbums } from './albums.js';
+import { initArtistsView, loadArtists } from './artists.js';
+import { initHistoryView } from './history.js';
+import { addHistory, getSongLyrics } from './api.js';
+import { setLyrics, renderLyrics } from './lyrics.js';
 
 const electronAPI = window.electronAPI;
 
@@ -40,12 +45,37 @@ function handlePlaySong(index) {
     },
     renderPlaylist: () => renderPlaylist(handlePlaySong, handleContextMenu)
   });
+
+  const song = playlist[index];
+  if (song && song.type === 'online' && song.id) {
+    addHistory(song.id).catch(() => {});
+    loadOnlineLyrics(song.id);
+  }
 }
 
 function handleContextMenu(e, index) {
   showContextMenu(e, index, (idx) => {
     removeSong(idx, audio, updateSongDisplay, handlePlaySong);
   });
+}
+
+async function loadOnlineLyrics(songId) {
+  try {
+    const data = await getSongLyrics(songId);
+    if (data && data.content) {
+      const lines = data.content.split('\n').filter(l => l.trim());
+      const lyrics = lines.map(line => {
+        const match = line.match(/\[(\d{2}):(\d{2})\.(\d{2,3})\](.*)/);
+        if (match) {
+          const time = parseInt(match[1]) * 60 + parseInt(match[2]) + parseInt(match[3]) / (match[3].length === 3 ? 1000 : 100);
+          return { time, text: match[4].trim() };
+        }
+        return { time: 0, text: line.replace(/\[.*?\]/, '').trim() };
+      }).filter(l => l.text);
+      setLyrics(lyrics);
+      renderLyrics(audio);
+    }
+  } catch {}
 }
 
 addMusicBtn.addEventListener('click', addFiles);
@@ -98,6 +128,31 @@ initOnlineView();
 initSearch();
 initFavoriteButton();
 initFavoritesView();
+initAlbumsView();
+initArtistsView();
+initHistoryView();
+
+initOnlineTabs();
+
+function initOnlineTabs() {
+  const tabs = document.querySelectorAll('.online-tab');
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      tabs.forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+
+      const tabName = tab.dataset.tab;
+      document.querySelectorAll('.tab-content').forEach(tc => {
+        tc.style.display = 'none';
+      });
+      const target = document.getElementById('tab-' + tabName);
+      if (target) target.style.display = 'flex';
+
+      if (tabName === 'albums') loadAlbums();
+      if (tabName === 'artists') loadArtists();
+    });
+  });
+}
 
 window.addEventListener('show-login', () => {
   showAuthModal(false);

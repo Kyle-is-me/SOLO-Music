@@ -18,6 +18,17 @@ function showError(container, message) {
   container.appendChild(error);
 }
 
+function convertSong(song) {
+  return {
+    id: song.id,
+    title: song.title,
+    artist: song.artist?.name || '未知歌手',
+    album: song.album?.name || '',
+    duration: song.duration || 0,
+    type: 'online'
+  };
+}
+
 export async function searchSongs(keyword) {
   const searchResults = document.getElementById('search-results');
   const grid = document.getElementById('playlist-grid');
@@ -51,7 +62,7 @@ export async function searchSongs(keyword) {
   showLoading(searchResults);
 
   try {
-    const data = await get('/search?keyword=' + encodeURIComponent(keyword), true);
+    const data = await get('/search?q=' + encodeURIComponent(keyword) + '&type=song', true);
     searchResults.innerHTML = '';
 
     const songs = data.songs || [];
@@ -64,6 +75,7 @@ export async function searchSongs(keyword) {
     }
 
     songs.forEach((song, index) => {
+      const converted = convertSong(song);
       const row = document.createElement('div');
       row.className = 'song-row';
 
@@ -73,15 +85,15 @@ export async function searchSongs(keyword) {
 
       const nameEl = document.createElement('span');
       nameEl.className = 'song-row-name';
-      nameEl.textContent = song.title;
+      nameEl.textContent = converted.title;
 
       const artistEl = document.createElement('span');
       artistEl.className = 'song-row-artist';
-      artistEl.textContent = song.artist;
+      artistEl.textContent = converted.artist;
 
       const durationEl = document.createElement('span');
       durationEl.className = 'song-row-duration';
-      durationEl.textContent = formatTime(song.duration);
+      durationEl.textContent = formatTime(converted.duration);
 
       row.appendChild(indexEl);
       row.appendChild(nameEl);
@@ -90,7 +102,7 @@ export async function searchSongs(keyword) {
 
       row.addEventListener('dblclick', () => {
         window.dispatchEvent(new CustomEvent('play-online-songs', {
-          detail: { songs: [song] }
+          detail: { songs: [converted] }
         }));
       });
 

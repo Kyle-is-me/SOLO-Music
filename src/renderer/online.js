@@ -1,8 +1,19 @@
-import { get } from './api.js';
+import { getPlaylists, getPlaylistDetail } from './api.js';
 import { isLoggedIn } from './auth.js';
 import { formatTime } from './utils.js';
 
 let currentPlaylistSongs = [];
+
+function convertSong(song) {
+  return {
+    id: song.id,
+    title: song.title,
+    artist: song.artist?.name || '未知歌手',
+    album: song.album?.name || '',
+    duration: song.duration || 0,
+    type: 'online'
+  };
+}
 
 function showLoginPrompt() {
   const grid = document.getElementById('playlist-grid');
@@ -62,10 +73,10 @@ export async function loadRecommendPlaylists() {
   showLoading(grid);
 
   try {
-    const data = await get('/playlists', true);
+    const data = await getPlaylists();
     grid.innerHTML = '';
 
-    const playlists = data.playlists || [];
+    const playlists = Array.isArray(data) ? data : [];
     if (playlists.length === 0) {
       const empty = document.createElement('div');
       empty.className = 'online-empty';
@@ -80,9 +91,9 @@ export async function loadRecommendPlaylists() {
 
       const cover = document.createElement('div');
       cover.className = 'playlist-card-cover';
-      if (pl.cover) {
+      if (pl.coverPath) {
         const img = document.createElement('img');
-        img.src = pl.cover;
+        img.src = pl.coverPath;
         img.alt = pl.name;
         img.loading = 'lazy';
         cover.appendChild(img);
@@ -97,7 +108,7 @@ export async function loadRecommendPlaylists() {
 
       const count = document.createElement('div');
       count.className = 'playlist-card-count';
-      count.textContent = pl.songCount + ' 首';
+      count.textContent = (pl._count?.songs || 0) + ' 首';
 
       info.appendChild(name);
       info.appendChild(count);
@@ -126,12 +137,17 @@ export async function loadPlaylistDetail(playlistId) {
   showLoading(detailSongs);
 
   try {
-    const data = await get('/playlists/' + playlistId, true);
+    const data = await getPlaylistDetail(playlistId);
 
     const desc = data.description ? ' - ' + data.description : '';
     detailInfo.textContent = data.name + desc;
 
-    currentPlaylistSongs = data.songs || [];
+    const rawSongs = data.songs || [];
+    currentPlaylistSongs = rawSongs.map(item => {
+      const song = item.song || item;
+      return convertSong(song);
+    });
+
     detailSongs.innerHTML = '';
 
     if (currentPlaylistSongs.length === 0) {

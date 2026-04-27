@@ -1,4 +1,4 @@
-import { getFavorites } from './api.js';
+import { getHistory } from './api.js';
 import { isLoggedIn } from './auth.js';
 import { formatTime } from './utils.js';
 
@@ -13,27 +13,27 @@ function convertSong(song) {
   };
 }
 
-export async function loadFavorites() {
-  const listEl = document.getElementById('favorites-list');
+export async function loadHistory() {
+  const listEl = document.getElementById('history-list');
   listEl.innerHTML = '';
 
   const loggedIn = await isLoggedIn();
   if (!loggedIn) {
     const tip = document.createElement('div');
     tip.className = 'favorites-tip';
-    tip.textContent = '请先登录查看收藏';
+    tip.textContent = '请先登录查看播放历史';
     listEl.appendChild(tip);
     return;
   }
 
   try {
-    const data = await getFavorites();
-    const items = data.items || [];
+    const data = await getHistory({ pageSize: 50 });
+    const items = data.list || [];
 
     if (items.length === 0) {
       const tip = document.createElement('div');
       tip.className = 'favorites-tip';
-      tip.textContent = '暂无收藏歌曲';
+      tip.textContent = '暂无播放历史';
       listEl.appendChild(tip);
       return;
     }
@@ -84,15 +84,15 @@ export async function loadFavorites() {
   } catch (err) {
     const tip = document.createElement('div');
     tip.className = 'favorites-tip';
-    tip.textContent = '加载收藏失败';
+    tip.textContent = '加载播放历史失败';
     listEl.appendChild(tip);
   }
 }
 
-export function initFavoritesView() {
+export function initHistoryView() {
   window.addEventListener('view-changed', (e) => {
-    if (e.detail && e.detail.view === 'favorites') {
-      loadFavorites();
+    if (e.detail && e.detail.view === 'history') {
+      loadHistory();
     }
   });
 }

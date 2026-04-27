@@ -12,6 +12,13 @@ protocol.registerSchemesAsPrivileged([
       stream: true,
       supportFetchAPI: true
     }
+  },
+  {
+    scheme: 'stream',
+    privileges: {
+      stream: true,
+      supportFetchAPI: true
+    }
   }
 ]);
 
@@ -38,6 +45,58 @@ app.whenReady().then(() => {
     let filePath = request.url.replace('local://audio/', '');
     filePath = decodeURIComponent(filePath);
     callback({ path: filePath });
+  });
+
+  protocol.registerStreamProtocol('stream', (request, callback) => {
+    const urlPath = request.url.replace('stream://', '');
+    const parts = urlPath.split('/');
+    if (parts[0] === 'song' && parts[1]) {
+      const songId = parts[1];
+      const streamUrl = 'http://localhost:3000/api/v1/songs/' + songId + '/stream';
+
+      readStore().then(store => {
+        const token = store.auth && store.auth.token;
+        const headers = {};
+        if (token) {
+          headers.Authorization = 'Bearer ' + token;
+        }
+
+        const parsedUrl = new URL(streamUrl);
+        const httpModule = require('http');
+        const requestOptions = {
+          hostname: parsedUrl.hostname,
+          port: parsedUrl.port || 80,
+          path: parsedUrl.pathname,
+          headers: headers
+        };
+
+        const req = httpModule.get(requestOptions, (res) => {
+          if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
+            const redirectUrl = new URL(res.headers.location, streamUrl);
+            const redirectOpts = {
+              hostname: redirectUrl.hostname,
+              port: redirectUrl.port || 80,
+              path: redirectUrl.pathname + redirectUrl.search,
+              headers: headers
+            };
+            const redirectReq = httpModule.get(redirectOpts, (redirectRes) => {
+              callback(redirectRes);
+            });
+            redirectReq.on('error', () => {
+              callback({ status: 500 });
+            });
+          } else {
+            callback(res);
+          }
+        });
+
+        req.on('error', () => {
+          callback({ status: 500 });
+        });
+      });
+    } else {
+      callback({ status: 404 });
+    }
   });
 
   createWindow();

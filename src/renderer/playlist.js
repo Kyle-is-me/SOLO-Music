@@ -164,7 +164,6 @@ export function addOnlineSongs(songs) {
       artist: song.artist,
       album: song.album || '',
       duration: song.duration || 0,
-      audioUrl: song.audioUrl,
       filePath: ''
     });
   }
@@ -182,7 +181,6 @@ export function addOnlineSong(song) {
     artist: song.artist,
     album: song.album || '',
     duration: song.duration || 0,
-    audioUrl: song.audioUrl,
     filePath: ''
   });
   renderPlaylist();

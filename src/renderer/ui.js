@@ -195,13 +195,15 @@ export function switchView(viewName) {
   const views = {
     local: document.getElementById('player-view'),
     online: document.getElementById('online-view'),
-    favorites: document.getElementById('favorites-view')
+    favorites: document.getElementById('favorites-view'),
+    history: document.getElementById('history-view')
   };
 
   const navItems = {
     local: document.getElementById('nav-local'),
     online: document.getElementById('nav-online'),
-    favorites: document.getElementById('nav-favorites')
+    favorites: document.getElementById('nav-favorites'),
+    history: document.getElementById('nav-history')
   };
 
   Object.entries(views).forEach(([name, el]) => {
@@ -223,10 +225,12 @@ export function initNavigation() {
   const navLocal = document.getElementById('nav-local');
   const navOnline = document.getElementById('nav-online');
   const navFavorites = document.getElementById('nav-favorites');
+  const navHistory = document.getElementById('nav-history');
 
   navLocal.addEventListener('click', () => switchView('local'));
   navOnline.addEventListener('click', () => switchView('online'));
   navFavorites.addEventListener('click', () => switchView('favorites'));
+  navHistory.addEventListener('click', () => switchView('history'));
 }
 
 let _currentSong = null;
@@ -293,8 +297,8 @@ export async function updateFavoriteButton(song) {
 
   try {
     const data = await getFavorites();
-    const songs = data.songs || [];
-    const isFav = songs.some(s => s.id === song.id);
+    const items = data.items || [];
+    const isFav = items.some(item => (item.song && item.song.id === song.id) || item.songId === song.id);
     if (isFav) {
       outlineIcon.style.display = 'none';
       filledIcon.style.display = '';
