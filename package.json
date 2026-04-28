@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "本地音乐播放器",
   "author": "Developer",
-  "main": "dist-vite/electron/main.js",
+  "main": "dist-electron/main.js",
   "scripts": {
     "dev": "vite",
     "build": "vite build && electron-builder --win",
@@ -36,9 +36,8 @@
       "shortcutName": "SOLO音乐"
     },
     "files": [
-      "src/**",
-      "index.html",
-      "styles.css",
+      "dist-vite/**",
+      "dist-electron/**",
       "package.json"
     ]
   },

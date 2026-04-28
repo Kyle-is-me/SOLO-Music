@@ -10,6 +10,9 @@ export default defineConfig({
     electron([
       {
         entry: 'electron/main.js',
+        onstart(args) {
+          args.startup();
+        },
       },
       {
         entry: 'electron/preload.js',
