@@ -3,11 +3,12 @@
   "version": "1.0.0",
   "description": "本地音乐播放器",
   "author": "Developer",
-  "main": "src/main.js",
+  "main": "dist-vite/electron/main.js",
   "scripts": {
-    "start": "electron .",
-    "build": "electron-builder --win",
-    "pack": "electron-builder --win --dir"
+    "dev": "vite",
+    "build": "vite build && electron-builder --win",
+    "pack": "vite build && electron-builder --win --dir",
+    "start": "vite"
   },
   "build": {
     "appId": "com.musicplayer.app",
@@ -42,7 +43,14 @@
     ]
   },
   "dependencies": {
-    "music-metadata": "^7.14.0"
+    "@vitejs/plugin-vue": "^4.6.2",
+    "music-metadata": "^7.14.0",
+    "pinia": "^2.3.1",
+    "vite": "^4.5.14",
+    "vite-plugin-electron": "^0.14.1",
+    "vite-plugin-electron-renderer": "^0.14.6",
+    "vue": "^3.5.33",
+    "vue-router": "^4.6.4"
   },
   "devDependencies": {
     "electron": "^22.0.0",
